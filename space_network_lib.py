@@ -1,6 +1,7 @@
 import time
 from abc import ABC, abstractmethod
 import random
+from operator import index
 
 
 class CommsError(Exception):
@@ -105,6 +106,7 @@ class Satellite(SpaceEntity):
         if isinstance(packet, RelayPacket):
             inner_packet = packet.data
             print(f"Unwrapping and forwarding to {inner_packet.receiver}")
+            # Satellites_list_index = Satellites_list.index(inner_packet.receiver)
             transmission_attempt(packet.packet_to_relay)
         else:
             print(f"Final destination reached: {packet.data}")
@@ -140,19 +142,26 @@ def transmission_attempt(paket: Packet):
 
 network_manage = SpaceNetwork(4)
 
+Earth = Satellite("Earth", 0)
 Sat1 = Satellite("satellite1", 100)
 Sat2 = Satellite("satellite2", 200)
-Earth = Satellite("Earth", 0)
+Sat3 = Satellite("satellite3", 300)
+Sat4 = Satellite("satellite4", 400)
+Sat5 = Satellite("satellite5", 500)
+# Satellites_list = [Sat1, Sat2, Sat3, Sat4, Sat5]
 
 
 message1 = Packet("Hi there", Sat1, Sat2)
 final_p = Packet("Hello from Earth", Sat1, Sat2)
 p_earth_to_sat1 = RelayPacket(final_p, Earth, Sat1)
 
-try:
-    transmission_attempt(message1)
-except BrokenConnectionError:
-    print("failed Transmission")
+Relay1 = RelayPacket(final_p, Sat2, Earth)
+Relay2 = RelayPacket()
+
+# try:
+#     transmission_attempt(message1)
+# except BrokenConnectionError:
+#     print("failed Transmission")
 
 try:
     transmission_attempt(p_earth_to_sat1)
