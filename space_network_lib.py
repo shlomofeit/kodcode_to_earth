@@ -138,7 +138,7 @@ def transmission_attempt(paket: Packet):
         print("Target out of range.")
         raise BrokenConnectionError("Target out of range.")
 
-network_manage = SpaceNetwork(3)
+network_manage = SpaceNetwork(4)
 
 Sat1 = Satellite("satellite1", 100)
 Sat2 = Satellite("satellite2", 200)
