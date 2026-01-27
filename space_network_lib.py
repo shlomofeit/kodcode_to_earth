@@ -1,3 +1,4 @@
+import time
 from abc import ABC, abstractmethod
 import random
 
@@ -21,6 +22,10 @@ class DataCorruptedError(CommsError):
 
 
 class OutOfRangeError(CommsError):
+    pass
+
+
+class BrokenConnectionError(CommsError):
     pass
 
 
@@ -110,12 +115,21 @@ def transmission_attempt(paket: Packet):
     except DataCorruptedError:
         print("Data corrupted, retrying...")
         transmission_attempt(paket)
+    except LinkTerminatedError:
+        print("Link lost.")
+        raise BrokenConnectionError("Link lost.")
+    except OutOfRangeError:
+        print("Target out of range.")
+        raise BrokenConnectionError("Target out of range.")
 
-network_manage = SpaceNetwork(2)
+network_manage = SpaceNetwork(3)
 
 Sat1 = Satellite("satellite1", 100)
 Sat2 = Satellite("Satellite2", 200)
 
 message1 = Packet("Hi there", Sat1, Sat2)
 
-transmission_attempt(message1)
+try:
+    transmission_attempt(message1)
+except BrokenConnectionError:
+    print("failed Transmission")
