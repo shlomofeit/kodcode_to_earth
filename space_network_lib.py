@@ -1,3 +1,4 @@
+import time
 from abc import ABC, abstractmethod
 import random
 
@@ -21,6 +22,10 @@ class DataCorruptedError(CommsError):
 
 
 class OutOfRangeError(CommsError):
+    pass
+
+
+class BrokenConnectionError(CommsError):
     pass
 
 
@@ -91,3 +96,65 @@ class SpaceNetwork:
             f"[Network] Transmitting from {source_entity.name} to {dest_entity.name}..."
         )
         dest_entity.receive_signal(packet)
+
+class Satellite(SpaceEntity):
+    def __init__(self, name, distance_from_earth):
+        super().__init__(name, distance_from_earth)
+
+    def receive_signal(self, packet: Packet):
+        if isinstance(packet, RelayPacket):
+            inner_packet = packet.data
+            print(f"Unwrapping and forwarding to {inner_packet.receiver}")
+            transmission_attempt(packet.packet_to_relay)
+        else:
+            print(f"Final destination reached: {packet.data}")
+        print(f"[{self.name}] Received: {packet}")
+
+
+class RelayPacket(Packet):
+    def __init__(self, packet_to_relay, sender, proxy):
+        super().__init__(packet_to_relay, sender, proxy)
+        self.packet_to_relay = packet_to_relay
+        self.sender = sender
+        self.proxy = proxy
+
+    def __repr__(self):
+        return f"RelayPacket(Relaying [{self.data}] to {self.receiver} from {self.sender})"
+
+def transmission_attempt(paket: Packet):
+    try:
+        network_manage.send(paket)
+    except TemporalInterferenceError:
+        print("Interference, waiting...")
+        time.sleep(2)
+        transmission_attempt(paket)
+    except DataCorruptedError:
+        print("Data corrupted, retrying...")
+        transmission_attempt(paket)
+    except LinkTerminatedError:
+        print("Link lost.")
+        raise BrokenConnectionError("Link lost.")
+    except OutOfRangeError:
+        print("Target out of range.")
+        raise BrokenConnectionError("Target out of range.")
+
+network_manage = SpaceNetwork(4)
+
+Sat1 = Satellite("satellite1", 100)
+Sat2 = Satellite("satellite2", 200)
+Earth = Satellite("Earth", 0)
+
+
+message1 = Packet("Hi there", Sat1, Sat2)
+final_p = Packet("Hello from Earth", Sat1, Sat2)
+p_earth_to_sat1 = RelayPacket(final_p, Earth, Sat1)
+
+try:
+    transmission_attempt(message1)
+except BrokenConnectionError:
+    print("failed Transmission")
+
+try:
+    transmission_attempt(p_earth_to_sat1)
+except BrokenConnectionError:
+    print("failed Transmission")
