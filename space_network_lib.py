@@ -102,8 +102,24 @@ class Satellite(SpaceEntity):
         super().__init__(name, distance_from_earth)
 
     def receive_signal(self, packet: Packet):
+        if isinstance(packet, RelayPacket):
+            inner_packet = packet.data
+            print(f"Unwrapping and forwarding to {inner_packet.receiver}")
+            transmission_attempt(packet.packet_to_relay)
+        else:
+            print(f"Final destination reached: {packet.data}")
         print(f"[{self.name}] Received: {packet}")
 
+
+class RelayPacket(Packet):
+    def __init__(self, packet_to_relay, sender, proxy):
+        super().__init__(packet_to_relay, sender, proxy)
+        self.packet_to_relay = packet_to_relay
+        self.sender = sender
+        self.proxy = proxy
+
+    def __repr__(self):
+        return f"RelayPacket(Relaying [{self.data}] to {self.receiver} from {self.sender})"
 
 def transmission_attempt(paket: Packet):
     try:
@@ -125,11 +141,20 @@ def transmission_attempt(paket: Packet):
 network_manage = SpaceNetwork(3)
 
 Sat1 = Satellite("satellite1", 100)
-Sat2 = Satellite("Satellite2", 200)
+Sat2 = Satellite("satellite2", 200)
+Earth = Satellite("Earth", 0)
+
 
 message1 = Packet("Hi there", Sat1, Sat2)
+final_p = Packet("Hello from Earth", Sat1, Sat2)
+p_earth_to_sat1 = RelayPacket(final_p, Earth, Sat1)
 
 try:
     transmission_attempt(message1)
+except BrokenConnectionError:
+    print("failed Transmission")
+
+try:
+    transmission_attempt(p_earth_to_sat1)
 except BrokenConnectionError:
     print("failed Transmission")
