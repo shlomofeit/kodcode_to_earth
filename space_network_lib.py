@@ -100,11 +100,22 @@ class Satellite(SpaceEntity):
         print(f"[{self.name}] Received: {packet}")
 
 
-network_manage = SpaceNetwork(1)
+def transmission_attempt(paket: Packet):
+    try:
+        network_manage.send(paket)
+    except TemporalInterferenceError:
+        print("Interference, waiting...")
+        time.sleep(2)
+        transmission_attempt(paket)
+    except DataCorruptedError:
+        print("Data corrupted, retrying...")
+        transmission_attempt(paket)
+
+network_manage = SpaceNetwork(2)
 
 Sat1 = Satellite("satellite1", 100)
 Sat2 = Satellite("Satellite2", 200)
 
 message1 = Packet("Hi there", Sat1, Sat2)
 
-network_manage.send(message1)
+transmission_attempt(message1)
