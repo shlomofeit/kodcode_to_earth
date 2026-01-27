@@ -138,23 +138,31 @@ def transmission_attempt(paket: Packet):
         print("Target out of range.")
         raise BrokenConnectionError("Target out of range.")
 
-network_manage = SpaceNetwork(4)
+network_manage = SpaceNetwork(5)
 
 Sat1 = Satellite("satellite1", 100)
 Sat2 = Satellite("satellite2", 200)
+Sat3 = Satellite("satellite3", 300)
+Sat4 = Satellite("satellite4", 400)
+Sat5 = Satellite("satellite5", 500)
 Earth = Satellite("Earth", 0)
-
+# Satellites_list = [Sat1, Sat2, Sat3, Sat4, Sat5]
 
 message1 = Packet("Hi there", Sat1, Sat2)
 final_p = Packet("Hello from Earth", Sat1, Sat2)
 p_earth_to_sat1 = RelayPacket(final_p, Earth, Sat1)
+proxy1 = RelayPacket(p_earth_to_sat1, Sat1, Sat2)
+proxy2 = RelayPacket(proxy1, Sat2, Sat3)
+proxy3 = RelayPacket(proxy2, Sat3, Sat4)
+proxy4 = RelayPacket(proxy3, Sat4, Sat5)
+
+
+# try:
+#     transmission_attempt(message1)
+# except BrokenConnectionError:
+#     print("failed Transmission")
 
 try:
-    transmission_attempt(message1)
-except BrokenConnectionError:
-    print("failed Transmission")
-
-try:
-    transmission_attempt(p_earth_to_sat1)
+    transmission_attempt(proxy4)
 except BrokenConnectionError:
     print("failed Transmission")
