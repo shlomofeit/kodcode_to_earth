@@ -91,3 +91,20 @@ class SpaceNetwork:
             f"[Network] Transmitting from {source_entity.name} to {dest_entity.name}..."
         )
         dest_entity.receive_signal(packet)
+
+class Satellite(SpaceEntity):
+    def __init__(self, name, distance_from_earth):
+        super().__init__(name, distance_from_earth)
+
+    def receive_signal(self, packet: Packet):
+        print(f"[{self.name}] Received: {packet}")
+
+
+network_manage = SpaceNetwork(1)
+
+Sat1 = Satellite("satellite1", 100)
+Sat2 = Satellite("Satellite2", 200)
+
+message1 = Packet("Hi there", Sat1, Sat2)
+
+network_manage.send(message1)
