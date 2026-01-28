@@ -1,6 +1,32 @@
 from space_network_lib import *
 
 
+class Satellite(SpaceEntity):
+    def __init__(self, name, distance_from_earth):
+        super().__init__(name, distance_from_earth)
+
+    def receive_signal(self, packet: Packet):
+        # if isinstance(packet, RelayPacket):
+        #     # print(f">>>{packet} is RelayPacket")
+        #     inner_packet = packet.data
+        #     print(f"Unwrapping and forwarding to {inner_packet.receiver}")
+        #     transmission_attempt(packet.packet_to_relay)
+        # else:
+        print(f"Final destination reached: {packet.data}")
+        print(f"[{self.name}] Received: {packet}")
+
+
+class RelayPacket(Packet):
+    def __init__(self, packet_to_relay, sender, proxy):
+        super().__init__(packet_to_relay, sender, proxy)
+        self.packet_to_relay = packet_to_relay
+        self.sender = sender
+        self.proxy = proxy
+
+    def __repr__(self):
+        return f"RelayPacket(Relaying [{self.data}] to {self.receiver} from {self.sender})"
+
+
 def transmission_attempt(packet: Packet):
     try:
         network_manage.send(packet)
