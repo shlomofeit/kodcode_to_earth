@@ -70,6 +70,7 @@ class SpaceNetwork:
         # Check Range
         dist = abs(source_entity.distance_from_earth - dest_entity.distance_from_earth)
         if dist > 150 and self.level > 2:
+            print(f"Distance {dist} exceeds max range of 150")
             raise OutOfRangeError(f"Distance {dist} exceeds max range of 150")
 
         # Simulate Noise/Errors

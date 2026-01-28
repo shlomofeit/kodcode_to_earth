@@ -6,20 +6,22 @@ class Satellite(SpaceEntity):
         super().__init__(name, distance_from_earth)
 
     def receive_signal(self, packet: Packet):
-        # if isinstance(packet, RelayPacket):
-        #     # print(f">>>{packet} is RelayPacket")
-        #     inner_packet = packet.data
-        #     print(f"Unwrapping and forwarding to {inner_packet.receiver}")
-        #     transmission_attempt(packet.packet_to_relay)
-        # else:
-        print(f"Final destination reached: {packet.data}")
+        if isinstance(packet, RelayPacket):
+            # print(f">>>{packet} is RelayPacket")
+            print("YYY")
+            inner_packet = packet.packet_to_relay
+            print(f"Unwrapping and forwarding to {packet.receiver}")
+            print(f"From {inner_packet.sender} To {inner_packet.receiver}")
+            packet_send_smart(Packet(inner_packet.data, inner_packet.sender, inner_packet.receiver))
+        else:
+            print(f"Final destination reached: {packet.data}")
         print(f"[{self.name}] Received: {packet}")
 
 
 class RelayPacket(Packet):
     def __init__(self, packet_to_relay, sender, proxy):
         super().__init__(packet_to_relay, sender, proxy)
-        self.packet_to_relay = packet_to_relay
+        self.packet_to_relay: Packet = packet_to_relay
         self.sender = sender
         self.proxy = proxy
 
@@ -40,27 +42,36 @@ def transmission_attempt(packet: Packet):
     except LinkTerminatedError:
         print("Link lost.")
         raise BrokenConnectionError("Link lost.")
-    # except OutOfRangeError:
+    except OutOfRangeError:
     #     print("Target out of range.")
     #     raise BrokenConnectionError("Target out of range.")
-
-
-def packet_send_smart(packet: Packet):
-    try:
-        if isinstance(packet, RelayPacket):
-            packet_send_smart(packet.packet_to_relay)
-        else:
-            transmission_attempt(packet)
-    except OutOfRangeError:
         print("XXX")
         proxy = Satellites_list.index(packet.sender)
         p_earth_to_sat1 = RelayPacket(packet, packet.sender, Satellites_list[proxy + 1])
         # if isinstance(final_p.data, RelayPacket):
-        print(f">>>{packet} is RelayPacket")
+        print(f">> From {packet.sender} To {Satellites_list[proxy + 1]}")
         inner_packet1 = packet
         print(f"Unwrapping and forwarding to {inner_packet1.receiver}")
         # transmission_attempt(p_earth_to_sat1.packet_to_relay)
-        packet_send_smart(p_earth_to_sat1)
+        transmission_attempt(p_earth_to_sat1)
+
+
+def packet_send_smart(packet: Packet):
+    # try:
+        if isinstance(packet, RelayPacket):
+            packet_send_smart(packet.packet_to_relay)
+        else:
+            transmission_attempt(packet)
+    # except OutOfRangeError:
+    #     print("XXX")
+    #     proxy = Satellites_list.index(packet.sender)
+    #     p_earth_to_sat1 = RelayPacket(packet, packet.sender, Satellites_list[proxy + 1])
+    #     # if isinstance(final_p.data, RelayPacket):
+    #     print(f">>>{packet} is RelayPacket")
+    #     inner_packet1 = packet
+    #     print(f"Unwrapping and forwarding to {inner_packet1.receiver}")
+    #     # transmission_attempt(p_earth_to_sat1.packet_to_relay)
+    #     transmission_attempt(p_earth_to_sat1)
 
 
 network_manage = SpaceNetwork(6)
@@ -74,7 +85,7 @@ Earth = Satellite("Earth", 0)
 Satellites_list = [Earth, Sat1, Sat2, Sat3, Sat4, Sat5]
 
 message1 = Packet("Hi there", Sat1, Sat2)
-final_p = Packet("Hello from Earth", Sat1, Sat3)
+final_p = Packet("Hello from Earth", Sat1, Sat4)
 # p_earth_to_sat1 = RelayPacket(final_p, Earth, Sat1)
 # proxy1 = RelayPacket(p_earth_to_sat1, Sat1, Sat2)
 # proxy2 = RelayPacket(proxy1, Sat2, Sat3)
@@ -94,15 +105,5 @@ final_p = Packet("Hello from Earth", Sat1, Sat3)
 
 try:
     packet_send_smart(final_p)
-# except OutOfRangeError:
-#     print("XXX")
-#     proxy = Satellites_list.index(final_p.sender)
-#     p_earth_to_sat1 = RelayPacket(final_p, final_p.sender, Satellites_list[proxy + 1])
-#     # if isinstance(final_p.data, RelayPacket):
-#     print(f">>>{final_p} is RelayPacket")
-#     inner_packet1 = final_p
-#     print(f"Unwrapping and forwarding to {inner_packet1.receiver}")
-#     # transmission_attempt(p_earth_to_sat1.packet_to_relay)
-#     packet_send_smart(p_earth_to_sat1)
 except BrokenConnectionError:
     print("failed Transmission")
