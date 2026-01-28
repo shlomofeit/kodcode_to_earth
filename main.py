@@ -54,7 +54,7 @@ def packet_send_smart(packet: Packet):
         packet_send_smart(p_earth_to_sat1)
 
 
-network_manage = SpaceNetwork(6)
+network_manage = SpaceNetwork(7)
 
 Sat1 = Satellite("satellite1", 100)
 Sat2 = Satellite("satellite2", 200)
